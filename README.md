@@ -27,7 +27,7 @@
   
 - Install the dependencies by running:
 
-          Pip install -r Requirements.txt.
+          pip install -r requirements.txt
 
 # Exemplo de Uso
 
