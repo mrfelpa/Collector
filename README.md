@@ -21,7 +21,7 @@
 # Installing
 - Make sure you have Python 3.6 or higher installed.
   
-- Clone the repository using the git clone https://github.com/mrfelpa/Colletor.git
+- Clone the repository using the git clone https://github.com/mrfelpa/Collector.git
   
 - Navigate to the Sherlock project folder.
   
