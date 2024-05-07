@@ -23,7 +23,7 @@
   
 - Clone the repository using the git clone https://github.com/mrfelpa/Collector.git
   
-- Navigate to the Sherlock project folder.
+- Navigate to the Colletctor project folder.
   
 - Install the dependencies by running:
 
