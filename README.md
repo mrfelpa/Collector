@@ -34,7 +34,7 @@
         from get_geolocation import get_geolocation
         from take_screenshot import take_screenshot
         
-        victim_ip = "0.0.0.0"  # Replace with real IP
+        target_ip = "0.0.0.0"  # Replace with real IP
         country, Region, city = get_geolocation(victim_ip)
         
         if country:
